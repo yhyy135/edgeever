@@ -17,7 +17,6 @@ export type AttachmentMenuTarget = {
 
 export type ImageMenuTarget = {
   kind: "image";
-  actionsElement?: HTMLElement | null;
   element?: HTMLElement;
   url: string;
   filename: string;

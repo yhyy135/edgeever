@@ -1,7 +1,8 @@
 import { Previewer } from "pagedjs";
 import hljs from "highlight.js/lib/common";
+import { renderMermaidSVG, THEMES } from "beautiful-mermaid";
 import { MERMAID_THEME_PALETTES } from "@/components/ThemeProvider";
-import { renderThemedMermaidSvg } from "@/lib/mermaid-renderer";
+import { scaleMermaidSvg } from "@/lib/mermaid-svg";
 import {
   NOTE_PRINT_MESSAGE,
   NOTE_PRINT_READY_MESSAGE,
@@ -48,12 +49,13 @@ const renderMermaidBlocks = async (root: HTMLElement, theme: MermaidThemeName, f
     }
 
     try {
-      const svg = await renderThemedMermaidSvg(source, {
-        theme,
-        palette,
+      const svg = scaleMermaidSvg(renderMermaidSVG(source, {
+        ...THEMES[theme] ?? THEMES["zinc-light"],
+        ...palette,
+        transparent: true,
         font,
         padding: 24,
-      });
+      }));
       const figure = document.createElement("figure");
       figure.className = "edgeever-print-mermaid";
       figure.innerHTML = svg;

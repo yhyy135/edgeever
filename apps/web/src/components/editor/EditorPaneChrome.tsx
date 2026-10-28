@@ -108,26 +108,21 @@ export const ResourceActionMenu = ({
   onMouseLeave: () => void;
 }) => {
   const referenceElement = target.element ?? null;
-  // Keep a closing image menu in its detached panel until cleanup runs; never
-  // briefly turn it back into a floating menu on the document body.
-  const actionsElement = target.kind === "image" ? target.actionsElement ?? null : null;
   const { refs, floatingStyles, isPositioned } = useFloating({
     ...(target.kind === "image" ? imageResourceMenuPosition : attachmentResourceMenuPosition),
-    elements: { reference: actionsElement ? null : referenceElement },
-    whileElementsMounted: actionsElement ? undefined : autoUpdate,
+    elements: { reference: referenceElement },
+    whileElementsMounted: autoUpdate,
   });
 
   return createPortal(
   <TooltipProvider delayDuration={0} skipDelayDuration={0}>
     <div
-      ref={actionsElement ? undefined : refs.setFloating}
+      ref={refs.setFloating}
       data-edgeever-resource-menu
       role="toolbar"
       aria-label={labels.download}
-      className={actionsElement
-        ? "flex flex-wrap items-center gap-1"
-        : "fixed z-[110] flex items-center gap-1 overflow-hidden rounded-lg border border-slate-200 bg-card p-1 shadow-lg"}
-      style={actionsElement ? undefined : referenceElement ? {
+      className="fixed z-[110] flex items-center gap-1 overflow-hidden rounded-lg border border-slate-200 bg-card p-1 shadow-lg"
+      style={referenceElement ? {
         ...floatingStyles,
         visibility: isPositioned ? "visible" : "hidden",
       } : {
@@ -140,11 +135,10 @@ export const ResourceActionMenu = ({
             : "translateX(-50%)",
       }}
       onMouseEnter={onMouseEnter}
-      onMouseLeave={actionsElement ? undefined : onMouseLeave}
-      onMouseDown={actionsElement ? (event) => event.preventDefault() : undefined}
+      onMouseLeave={onMouseLeave}
       onFocusCapture={onMouseEnter}
       onBlurCapture={(event) => {
-        if (!actionsElement && !event.currentTarget.contains(event.relatedTarget as Node | null)) onMouseLeave();
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) onMouseLeave();
       }}
     >
       <IconTooltip label={labels.download}>
@@ -167,13 +161,13 @@ export const ResourceActionMenu = ({
           </Button>
         </IconTooltip>
       ) : null}
-      {(!actionsElement || canRename) && <IconTooltip label={canRename ? labels.rename : labels.unavailable}>
+      <IconTooltip label={canRename ? labels.rename : labels.unavailable}>
         <Button type="button" size="sm" variant="ghost" aria-label={labels.rename} disabled={!canRename} onClick={onRename}>
           <Pencil className="h-3.5 w-3.5" />
           {labels.rename}
         </Button>
-      </IconTooltip>}
-      {(!actionsElement || canDelete) && <IconTooltip label={canDelete ? labels.delete : labels.unavailable}>
+      </IconTooltip>
+      <IconTooltip label={canDelete ? labels.delete : labels.unavailable}>
         <Button
           type="button"
           size="sm"
@@ -186,10 +180,10 @@ export const ResourceActionMenu = ({
           <Trash2 className="h-3.5 w-3.5" />
           {labels.delete}
         </Button>
-      </IconTooltip>}
+      </IconTooltip>
     </div>
   </TooltipProvider>,
-  actionsElement ?? document.body,
+  document.body,
   );
 };
 

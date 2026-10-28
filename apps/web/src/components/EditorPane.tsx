@@ -220,7 +220,6 @@ import {
 } from "@/lib/editor-external-link";
 import { createFileBatchQueue, processFileUploadBatch } from "@/lib/file-batch";
 import { resourceToMarkdown } from "@/lib/markdown-resource-paste";
-import { pasteBlockMarkdown } from "@/lib/markdown-text-paste";
 import { MEMO_ID_REMAPPED_EVENT, MEMO_SYNC_ACKNOWLEDGED_EVENT } from "@/lib/sync-events";
 import { useStandaloneMobileEditor } from "@/hooks/useStandaloneMobileEditor";
 import { statusSettleMotion } from "@/lib/motion";
@@ -255,7 +254,6 @@ import {
   type ImagePreviewRequestDetail,
 } from "./editor/ResizableImage";
 import { EditableImageGallery } from "./editor/ImageGallery";
-import { imageSelectionKey } from "./editor/image-selection";
 import { ImageViewer } from "./editor/ImageViewer";
 import { PdfAttachment } from "./editor/PdfAttachment";
 import { FileAttachment } from "./editor/FileAttachment";
@@ -1404,11 +1402,11 @@ const RichEditorPane = ({
         return true;
       },
       transformPastedHTML: (html) => wrapDetailsContentHtml(html),
-      handlePaste: (view, event) => {
+      handlePaste: (_view, event) => {
         const files = getResourceFilesFromDataTransfer(event.clipboardData);
 
         if (files.length === 0) {
-          return pasteBlockMarkdown(view, event.clipboardData);
+          return false;
         }
 
         event.preventDefault();
@@ -1765,9 +1763,9 @@ const RichEditorPane = ({
 
   useEffect(() => {
     const showImageMenu = (event: Event) => {
+      if (isMobileViewport) return;
       const detail = (event as CustomEvent<ImageMenuRequestDetail>).detail;
       if (!detail?.element) return;
-      if (isMobileViewport && !detail.actionsElement) return;
       cancelResourceMenuHide();
       const rect = detail.element.getBoundingClientRect();
       showResourceMenu({
@@ -1934,7 +1932,6 @@ const RichEditorPane = ({
 
   useEffect(() => {
     if (!resourceMenuTarget) return;
-    if (resourceMenuTarget.kind === "image" && resourceMenuTarget.actionsElement) return;
     const hideMenu = () => hideResourceMenu();
     window.addEventListener("resize", hideMenu);
     window.addEventListener("scroll", hideMenu, true);
@@ -3303,7 +3300,7 @@ const RichEditorPane = ({
   }, []);
 
   const handleResourceDownload = useCallback(async (target: ResourceMenuTarget) => {
-    if (target.kind !== "image" || !target.actionsElement) hideResourceMenu();
+    hideResourceMenu();
     clearResourceActionError();
     downloadResourceDirectly(target);
   }, [clearResourceActionError, downloadResourceDirectly, hideResourceMenu]);
@@ -3405,7 +3402,7 @@ const RichEditorPane = ({
   }, []);
 
   const handleResourceCopy = useCallback((target: ResourceMenuTarget) => {
-    if (target.kind !== "image" || !target.actionsElement) hideResourceMenu();
+    hideResourceMenu();
     clearResourceActionError();
     // Start the clipboard write in this turn so Safari still has the click gesture.
     void copyResourceToClipboard({
@@ -3419,10 +3416,7 @@ const RichEditorPane = ({
 
   const openResourceDialog = useCallback((action: ResourceDialogState["action"], target: ResourceMenuTarget) => {
     openResourceActionDialog(action, target);
-    if (target.kind === "image" && isEditorReady(editor)) {
-      editor.view.dispatch(editor.state.tr.setMeta(imageSelectionKey, null));
-    }
-  }, [editor, openResourceActionDialog]);
+  }, [openResourceActionDialog]);
 
   const handleResourceRename = useCallback(async () => {
     const target = resourceDialog?.action === "rename" ? resourceDialog.target : null;
@@ -4611,11 +4605,8 @@ const RichEditorPane = ({
               noteProse={noteProse}
             />
           )}
-          {showDocumentOutline && memo && hydratedEditorMemoId === memo.id && (
+          {showDocumentOutline && (
             <EditorOutline
-              key={memo.id}
-              memoId={memo.id}
-              editingMemoIdRef={editingMemoIdRef}
               editor={editor}
               scrollContainer={editorScrollContainer}
               collapsedAnchor={collapsedOutlineAnchor}

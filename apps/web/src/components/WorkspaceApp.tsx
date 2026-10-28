@@ -1347,9 +1347,6 @@ export const WorkspaceApp = ({
       await queryClient.invalidateQueries({ queryKey: ["templates"] });
       setAppNoticeDialog({ title: t("templates.templateCreated"), description: t("templates.templateCreated") });
     },
-    onError: () => {
-      setAppNoticeDialog({ title: t("templates.createFailedTitle"), description: t("templates.createFailed") });
-    },
   });
 
   const useTemplateMutation = useMutation({

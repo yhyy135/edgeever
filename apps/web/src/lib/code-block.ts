@@ -1,4 +1,4 @@
-import { createCodeBlockLowlight } from "./code-block-highlighting";
+import { common, createLowlight } from "lowlight";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import type { Editor } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
@@ -7,7 +7,7 @@ import { NoteProperties } from "@/components/editor/NoteProperties";
 import { FRONT_MATTER_LANGUAGE } from "@edgeever/shared";
 import { createElement } from "react";
 
-export const codeBlockLowlight = createCodeBlockLowlight();
+export const codeBlockLowlight = createLowlight(common);
 
 export const selectCurrentCodeBlockContent = (editor: Editor) => {
   const { $from, $to, from, to } = editor.state.selection;
